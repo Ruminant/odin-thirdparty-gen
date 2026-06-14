@@ -1,0 +1,31 @@
+name = "sokol"
+version = "main"
+upstream_url = "https://github.com/Ruminant/sokol-odin-imgui/archive/refs/heads/main.tar.gz"
+source_notes = "Downloaded from the sokol-odin-imgui main branch. Upstream ships generated Odin bindings and build_clibs_windows.cmd for native libraries."
+
+archive_name = "sokol-odin-imgui-main.tar.gz"
+source_package_dir = "sokol"
+odin_output_dir = "../../odin/sokol"
+example_output_dir = "../../examples/sokol"
+package_name = "sokol"
+
+handwritten = []
+license_files = [
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md",
+]
+
+windows_amd64_lib_dir = "../../odin/sokol/libs/windows/amd64"
+windows_build_script = "sokol/build_clibs_windows.cmd"
+windows_artifacts = [
+    "*.lib",
+    "*.dll",
+]
+
+# Temporarily vendored by hand. Upstream sokol-odin-imgui references dcimgui_core
+# but does not build or ship these libraries in its archive.
+vendored_windows_amd64_libs = [
+    "dcimgui_core.lib",
+    "dcimgui_impl_*.lib",
+]

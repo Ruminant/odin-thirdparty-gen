@@ -1,0 +1,27 @@
+name = "ffmpeg"
+version = "8.1.1"
+upstream_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full-shared.7z"
+source_notes = "Downloaded as a prebuilt shared release archive from Gyan.dev."
+
+bindgen_config = "bindgen/bindgen.sjson"
+staged_headers_dir = "bindgen/input"
+generated_dir = "generated"
+odin_output_dir = "../../odin/ffmpeg"
+package_name = "ffmpeg"
+
+handwritten = [
+    "support.odin",
+    "utility.odin",
+]
+license_files = [
+    "LICENSE",
+    "README.txt",
+]
+
+windows_amd64_lib_dir = "../../odin/ffmpeg/libs/windows/amd64"
+windows_amd64_import_libs = [
+    "*.lib",
+]
+windows_amd64_runtime_libs = [
+    "*.dll",
+]

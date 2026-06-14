@@ -1,0 +1,39 @@
+inputs = [
+    "input/libavutil/rational.h",
+    "input/libavutil/avstring.h",
+    "input/libavutil/error.h",
+    "input/libavutil/pixfmt.h",
+    "input/libavutil/samplefmt.h",
+    "input/libavutil/channel_layout.h",
+    "input/libavutil/buffer.h",
+    "input/libavutil/bprint.h",
+    "input/libavutil/dict.h",
+    "input/libavutil/frame.h",
+    "input/libavutil/hwcontext.h",
+    "input/libavutil/log.h",
+    "input/libavutil/opt.h",
+    "input/libavutil/avutil.h",
+    "input/libavcodec/codec_id.h",
+    "input/libavcodec/defs.h",
+    "input/libavcodec/packet.h",
+    "input/libavcodec/codec.h",
+    "input/libavcodec/codec_desc.h",
+    "input/libavcodec/avcodec.h",
+    "input/libavformat/avio.h",
+    "input/libavformat/avformat.h",
+    "input/libavfilter/avfilter.h",
+    "input/libavfilter/buffersink.h",
+    "input/libavfilter/buffersrc.h",
+    "input/libavdevice/avdevice.h",
+    "input/libswresample/swresample.h",
+    "input/libswscale/swscale.h"
+]
+
+output_folder = "../generated"
+
+imports_file = "imports.odin"
+package_name = "ffmpeg"
+
+clang_include_paths = [
+    "input"
+]
