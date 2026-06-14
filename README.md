@@ -1,4 +1,4 @@
-# Odin Thirdparty Bindins + Generator
+# Odin Thirdparty Bindings + Generator
 
 A collection of bindings for various libraries.
 
