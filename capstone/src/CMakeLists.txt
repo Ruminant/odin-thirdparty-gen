@@ -6,6 +6,7 @@ include(FetchContent)
 
 set(BUILD_SHARED_LIBS ON CACHE BOOL "Build Capstone shared library" FORCE)
 set(BUILD_STATIC_LIBS ON CACHE BOOL "Build Capstone static library" FORCE)
+set(BUILD_STATIC_RUNTIME ON CACHE BOOL "Use the static MSVC runtime for Capstone artifacts" FORCE)
 set(CAPSTONE_BUILD_CSTEST OFF CACHE BOOL "Build Capstone test binary" FORCE)
 set(CAPSTONE_BUILD_CSTOOL OFF CACHE BOOL "Build Capstone cstool" FORCE)
 
