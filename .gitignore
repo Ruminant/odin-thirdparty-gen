@@ -1,0 +1,7 @@
+/recipes/*/build/
+/recipes/*/generated/
+/recipes/*/bindgen/input/
+/examples/**/*.exe
+/examples/**/*.png
+/examples/**/ffmpeg-empty-output.mkv
+/.vscode/

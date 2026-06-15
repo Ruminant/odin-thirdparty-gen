@@ -1,0 +1,22 @@
+name = "capstone"
+version = "5.0.9"
+upstream_url = "https://github.com/capstone-engine/capstone/archive/refs/tags/5.0.9.tar.gz"
+source_notes = "Fetched and built with CMake FetchContent from recipes/capstone/CMakeLists.txt."
+
+bindgen_config = "bindgen/bindgen.sjson"
+staged_headers_dir = "bindgen/input"
+generated_dir = "generated"
+odin_output_dir = "../../odin/capstone"
+package_name = "capstone"
+
+handwritten = []
+license_files = []
+
+windows_amd64_lib_dir = "../../odin/capstone/libs/windows/amd64"
+windows_amd64_import_libs = [
+    "capstone.lib",
+    "capstone_static.lib",
+]
+windows_amd64_runtime_libs = [
+    "capstone.dll",
+]

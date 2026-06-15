@@ -1,17 +1,39 @@
 # Odin Thirdparty Bindings + Generator
 
-A collection of bindings for various libraries.
+A collection of Odin bindings for third-party C libraries.
 
-For each library, the idea is that
+The repository is arranged as an Odin collection:
 
-1 - we have cmakelists set up to fetch and build the library
-2 - we have a bindgen folder that will use https://github.com/karl-zylinski/odin-c-bindgen to generate the bindings
-3 - we have a script to handle all the above
+- `odin/<library>` contains the Odin package, handwritten helpers, and checked-in binary artifacts.
+- `recipes/<library>` contains the fetch/build/bindgen recipe for regenerating that package.
+- `examples/<library>/<example>` contains standalone example packages.
 
-Currently only capstone, but you should be able to test by fetching and then running:
+Use the collection from this repository root with:
 
-```bash
-odin build capstone/example -define:CAPSTONE_STATIC=true
+```powershell
+odin check odin\capstone -no-entry-point
+odin check odin\ffmpeg -no-entry-point
+odin run examples\capstone\disasm_basic -collection:thirdparty=odin -define:CAPSTONE_STATIC=true
 ```
 
-With CAPSTONE_STATIC set to false (the default), you'll need `capstone/odin/lib/capstone.dll` on your path.
+Examples import packages through the collection:
+
+```odin
+import cs "thirdparty:capstone"
+import ff "thirdparty:ffmpeg"
+```
+
+On Windows, FFmpeg runtime DLLs live in `odin\ffmpeg\libs\windows\amd64`. Add that directory to `PATH` before running FFmpeg examples:
+
+```powershell
+$env:PATH = "$(Resolve-Path .\odin\ffmpeg\libs\windows\amd64);$env:PATH"
+odin run examples\ffmpeg\raylib_video -collection:thirdparty=odin -- -video:"path\to\video.mp4"
+```
+
+The `justfile` wraps the common workflows:
+
+```powershell
+just check
+just capstone
+just ffmpeg
+```
