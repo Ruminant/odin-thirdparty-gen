@@ -6,7 +6,7 @@ ffmpeg_path := "$(Resolve-Path .\\odin\\ffmpeg\\libs\\windows\\amd64);$env:PATH"
 default:
     just --list
 
-all: capstone ffmpeg
+all: capstone ffmpeg sokol
 
 capstone:
     .\recipes\capstone\build_bindings.bat
@@ -14,7 +14,10 @@ capstone:
 ffmpeg:
     .\recipes\ffmpeg\build_bindings.bat
 
-check: check-capstone check-ffmpeg
+sokol:
+    .\recipes\sokol\build_bindings.bat
+
+check: check-capstone check-ffmpeg check-sokol
 
 check-capstone:
     odin check odin\capstone -no-entry-point
@@ -25,6 +28,21 @@ check-ffmpeg:
     odin check examples\ffmpeg\create_empty_output {{collection}}
     odin check examples\ffmpeg\grab_png_at_time {{collection}}
     odin check examples\ffmpeg\raylib_video {{collection}}
+
+check-sokol:
+    odin check odin\sokol\log -no-entry-point
+    odin check odin\sokol\app -no-entry-point
+    odin check odin\sokol\gfx -no-entry-point
+    odin check odin\sokol\glue -no-entry-point
+    odin check odin\sokol\time -no-entry-point
+    odin check odin\sokol\audio -no-entry-point
+    odin check odin\sokol\debugtext -no-entry-point
+    odin check odin\sokol\shape -no-entry-point
+    odin check odin\sokol\gl -no-entry-point
+    odin check odin\sokol\helpers -no-entry-point
+    odin check odin\sokol\imgui -no-entry-point
+    odin check odin\sokol\imgui\dear -no-entry-point
+    odin check examples\sokol\clear {{collection}}
 
 example-capstone:
     odin run examples\capstone\disasm_basic {{collection}} -define:CAPSTONE_STATIC=true -out:examples\capstone\disasm_basic\disasm_basic.exe
@@ -38,6 +56,13 @@ example-ffmpeg-grab video seconds="10.0" output="output.png":
 example-ffmpeg-raylib video:
     $env:PATH = "{{ffmpeg_path}}"; odin run examples\ffmpeg\raylib_video {{collection}} -out:examples\ffmpeg\raylib_video\raylib_video.exe -- -video="{{video}}"
 
+example-sokol-clear:
+    odin run examples\sokol\clear {{collection}} -out:examples\sokol\clear\sokol_clear.exe
+
+example-sokol-imgui:
+    odin run examples\sokol\imgui {{collection}} -out:examples\sokol\clear\sokol_imgui.exe
+
+
 clean-examples:
     Remove-Item -LiteralPath examples\capstone\disasm_basic\disasm_basic.exe -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath examples\ffmpeg\create_empty_output\create_empty_output.exe -Force -ErrorAction SilentlyContinue
@@ -45,3 +70,4 @@ clean-examples:
     Remove-Item -LiteralPath examples\ffmpeg\grab_png_at_time\grab_png_at_time.exe -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath examples\ffmpeg\grab_png_at_time\output.png -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath examples\ffmpeg\raylib_video\raylib_video.exe -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath examples\sokol\clear\sokol_clear.exe -Force -ErrorAction SilentlyContinue
