@@ -2,11 +2,24 @@ set windows-shell := ["powershell.exe", "-NoProfile", "-Command"]
 
 collection := "-collection:thirdparty=odin"
 ffmpeg_path := "$(Resolve-Path .\\odin\\ffmpeg\\libs\\windows\\amd64);$env:PATH"
+python := if os_family() == "windows" { "py -3" } else { "python3" }
 
 default:
     just --list
 
 all: capstone ffmpeg sokol
+
+bootstrap:
+    {{python}} tools/bootstrap.py
+
+bootstrap-tools:
+    {{python}} tools/bootstrap.py --kind tools
+
+package-release platform="windows-amd64":
+    {{python}} tools/package_release.py {{platform}}
+
+package-tools bindgen libclang="":
+    {{python}} tools/package_tools.py "{{bindgen}}" --libclang "{{libclang}}"
 
 capstone:
     .\recipes\capstone\build_bindings.bat

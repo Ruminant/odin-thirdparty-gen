@@ -14,7 +14,7 @@ set "ARCHIVE_PATH=%DOWNLOAD_DIR%\%FFMPEG_ARCHIVE%"
 set "BINDGEN_DIR=%RECIPE_DIR%\bindgen"
 set "BINDGEN_INPUT_DIR=%BINDGEN_DIR%\input"
 set "GENERATED_DIR=%RECIPE_DIR%\generated"
-set "BINDGEN_EXE=%ROOT_DIR%\bindgen\bindgen.exe"
+if not defined BINDGEN_EXE set "BINDGEN_EXE=%ROOT_DIR%\.thirdparty-tools\bindgen\windows-amd64\bindgen.exe"
 set "ODIN_DIR=%ROOT_DIR%\odin\ffmpeg"
 set "ODIN_LIB_DIR=%ODIN_DIR%\libs\windows\amd64"
 set "MANIFEST=%RECIPE_DIR%\package.sjson"
@@ -107,6 +107,7 @@ for %%F in (LICENSE README.txt) do (
 
 if not exist "%BINDGEN_EXE%" (
     echo [ffmpeg] Missing bindgen executable: "%BINDGEN_EXE%"
+    echo [ffmpeg] Run "just bootstrap-tools" or set BINDGEN_EXE to a local bindgen executable.
     goto :error
 )
 

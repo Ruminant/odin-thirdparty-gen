@@ -14,7 +14,7 @@ set "BINDGEN_INPUT_DIR=%BINDGEN_DIR%\input"
 set "GENERATED_DIR=%RECIPE_DIR%\generated"
 set "ODIN_DIR=%ROOT_DIR%\odin\capstone"
 set "ODIN_LIB_DIR=%ODIN_DIR%\libs\windows\amd64"
-set "BINDGEN_EXE=%ROOT_DIR%\bindgen\bindgen.exe"
+if not defined BINDGEN_EXE set "BINDGEN_EXE=%ROOT_DIR%\.thirdparty-tools\bindgen\windows-amd64\bindgen.exe"
 set "MANIFEST=%RECIPE_DIR%\package.sjson"
 set "COLLECTION_ARG=-collection:thirdparty=%ROOT_DIR%\odin"
 
@@ -57,6 +57,7 @@ if errorlevel 8 goto :error
 
 if not exist "%BINDGEN_EXE%" (
     echo [capstone] Missing bindgen executable: "%BINDGEN_EXE%"
+    echo [capstone] Run "just bootstrap-tools" or set BINDGEN_EXE to a local bindgen executable.
     goto :error
 )
 

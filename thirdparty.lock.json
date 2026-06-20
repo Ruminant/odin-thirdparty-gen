@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "release": {
+    "owner": "Ruminant",
+    "repo": "odin-thirdparty-gen",
+    "tag": "snapshot"
+  },
+  "releases": {
+    "artifacts": {
+      "owner": "Ruminant",
+      "repo": "odin-thirdparty-gen",
+      "tag": "snapshot-libs"
+    },
+    "tools": {
+      "owner": "Ruminant",
+      "repo": "odin-thirdparty-gen",
+      "tag": "snapshot"
+    }
+  },
+  "packages": {
+    "capstone": {
+      "version": "5.0.9",
+      "recipe": "recipes/capstone/package.sjson"
+    },
+    "ffmpeg": {
+      "version": "8.1.1",
+      "recipe": "recipes/ffmpeg/package.sjson"
+    },
+    "sokol": {
+      "version": "main",
+      "recipe": "recipes/sokol/package.sjson"
+    }
+  },
+  "artifacts": {
+    "windows-amd64": {
+      "asset": "odin-thirdparty-artifacts-windows-amd64.zip",
+      "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-windows-amd64.zip",
+      "sha256": "f87c8795078c7c7050bf8c5ab0fafbcdcfc1bd2935b8c8876a5c05b6e03cc578",
+      "size": 84636870
+    }
+  },
+  "tools": {
+    "windows-amd64": {
+      "asset": "odin-thirdparty-tools-windows-amd64.zip",
+      "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot/odin-thirdparty-tools-windows-amd64.zip",
+      "sha256": "576518f1c82e337826db42d5d93eeba8aed5ec11b60a4fad3203cbfe991f11e8",
+      "size": 24414212
+    }
+  }
+}
