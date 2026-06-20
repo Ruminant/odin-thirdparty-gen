@@ -22,7 +22,7 @@ package-tools bindgen libclang="":
     {{python}} tools/package_tools.py "{{bindgen}}" --libclang "{{libclang}}"
 
 capstone:
-    .\recipes\capstone\build_bindings.bat
+    {{python}} recipes/capstone/build_bindings.py
 
 ffmpeg:
     .\recipes\ffmpeg\build_bindings.bat

@@ -69,3 +69,11 @@ just package-tools path\to\bindgen.exe path\to\libclang.dll
 ```
 
 `just package-release <platform>` creates `dist/odin-thirdparty-artifacts-<platform>.zip` from locally staged runtime/link binaries and updates `thirdparty.lock.json` with the archive hash and size. `just package-tools <bindgen> [libclang]` creates the matching bindgen tool artifact. Upload those zips to the release tags configured in `thirdparty.lock.json` before expecting the bootstrap commands to work from a fresh checkout.
+
+The Capstone recipe is implemented in Python and can be run on Windows, macOS, and Linux:
+
+```powershell
+just capstone
+```
+
+FFmpeg and Sokol are still Windows batch recipes while their cross-platform packaging strategy is worked out.
