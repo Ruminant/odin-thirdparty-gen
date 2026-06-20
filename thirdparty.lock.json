@@ -42,7 +42,7 @@
   "tools": {
     "windows-amd64": {
       "asset": "odin-thirdparty-tools-windows-amd64.zip",
-      "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot/odin-thirdparty-tools-windows-amd64.zip",
+      "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-tools/odin-thirdparty-tools-windows-amd64.zip",
       "sha256": "576518f1c82e337826db42d5d93eeba8aed5ec11b60a4fad3203cbfe991f11e8",
       "size": 24414212
     }
