@@ -7,7 +7,7 @@ python := if os_family() == "windows" { "py -3" } else { "python3" }
 default:
     just --list
 
-all: capstone ffmpeg sokol
+build-all: build-capstone build-ffmpeg build-sokol
 
 bootstrap:
     {{python}} tools/bootstrap.py
@@ -21,14 +21,14 @@ package-release platform="windows-amd64":
 package-tools bindgen libclang="":
     {{python}} tools/package_tools.py "{{bindgen}}" --libclang "{{libclang}}"
 
-capstone:
+build-capstone:
     {{python}} recipes/capstone/build_bindings.py
 
-ffmpeg:
+build-ffmpeg:
     .\recipes\ffmpeg\build_bindings.bat
 
-sokol:
-    .\recipes\sokol\build_bindings.bat
+build-sokol:
+    {{python}} recipes/sokol/build_bindings.py
 
 check: check-capstone check-ffmpeg check-sokol
 

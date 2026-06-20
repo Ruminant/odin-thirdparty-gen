@@ -4,11 +4,11 @@ import re
 import shutil
 import sys
 import os
+import argparse
 from pathlib import Path
 
 
-WINDOWS_LIB_RE = re.compile(r'"((?:\.\./)?(?:sokol_|dcimgui_core)[^"]+\.(?:lib|dll))"')
-DCIMGUI_CONFIG_RE = re.compile(r'"lib/windows_amd64/dcimgui_core\.lib"')
+LIB_RE = re.compile(r'"([^"]*(?:sokol_|dcimgui_core)[^"]+\.(?:lib|dll|a|dylib|so))"')
 EXAMPLE_IMPORT_RE = re.compile(r'import\s+([A-Za-z_][A-Za-z0-9_]*)\s+"(?:\.\./)+sokol/([^"]+)"')
 
 
@@ -32,21 +32,33 @@ def reset_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
 
-def package_lib_prefix(package_root: Path, file_path: Path) -> str:
-    relative = os.path.relpath(package_root / "libs" / "windows" / "amd64", file_path.parent)
+def package_lib_prefix(package_root: Path, file_path: Path, os_name: str, arch: str) -> str:
+    relative = os.path.relpath(package_root / "libs" / os_name / arch, file_path.parent)
     return relative.replace("\\", "/")
 
 
-def patch_package_text(package_root: Path, path: Path, text: str) -> str:
-    lib_prefix = package_lib_prefix(package_root, path)
+def library_platform(name: str) -> tuple[str, str] | None:
+    if name.startswith("dcimgui") or "windows_x64" in name:
+        return "windows", "amd64"
+    if "macos_arm64" in name:
+        return "darwin", "arm64"
+    if "macos_x64" in name:
+        return "darwin", "amd64"
+    if "linux_x64" in name:
+        return "linux", "amd64"
+    return None
 
-    def replace_windows_lib(match: re.Match[str]) -> str:
+
+def patch_package_text(package_root: Path, path: Path, text: str) -> str:
+    def replace_lib(match: re.Match[str]) -> str:
         name = Path(match.group(1)).name
+        platform = library_platform(name)
+        if platform is None:
+            return match.group(0)
+        lib_prefix = package_lib_prefix(package_root, path, *platform)
         return f'"{lib_prefix}/{name}"'
 
-    text = WINDOWS_LIB_RE.sub(replace_windows_lib, text)
-    text = DCIMGUI_CONFIG_RE.sub(f'"{lib_prefix}/dcimgui_core.lib"', text)
-    return text
+    return LIB_RE.sub(replace_lib, text)
 
 
 def write_text_if_changed(path: Path, text: str) -> None:
@@ -105,14 +117,17 @@ def copy_example(source_examples: Path, output_examples: Path) -> int:
 
 
 def main() -> int:
-    if len(sys.argv) != 3:
-        print("usage: sync_sokol.py <package.sjson> <extracted-repo-dir>", file=sys.stderr)
-        return 2
+    parser = argparse.ArgumentParser()
+    parser.add_argument("manifest")
+    parser.add_argument("repo_dir")
+    parser.add_argument("--os", default="windows", help=argparse.SUPPRESS)
+    parser.add_argument("--arch", default="amd64", help=argparse.SUPPRESS)
+    args = parser.parse_args()
 
-    manifest_path = Path(sys.argv[1]).resolve()
+    manifest_path = Path(args.manifest).resolve()
     manifest_dir = manifest_path.parent
     manifest = manifest_path.read_text(encoding="utf-8")
-    repo_dir = Path(sys.argv[2]).resolve()
+    repo_dir = Path(args.repo_dir).resolve()
 
     source_package = repo_dir / string_value(manifest, "source_package_dir")
     output_package = (manifest_dir / string_value(manifest, "odin_output_dir")).resolve()
