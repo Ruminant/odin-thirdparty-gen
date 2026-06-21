@@ -25,7 +25,7 @@ On macOS and Linux, install the system libclang package separately when regenera
 
 Windows recipes look for `BINDGEN_EXE` first, then `.thirdparty-tools\bindgen\windows-amd64\bindgen.exe`.
 
-The first packaged artifact target is `windows-amd64`. Runtime/link artifacts are published under the `snapshot-libs` pre-release, while bindgen tool artifacts are published under the `snapshot` pre-release. macOS artifacts should use the same bootstrap flow once `darwin-amd64` and `darwin-arm64` assets are published.
+The first packaged artifact target is `windows-amd64`. Runtime/link artifacts are published under the `snapshot-libs` pre-release, while bindgen tool artifacts are published under the `snapshot-tools` pre-release. macOS artifacts should use the same bootstrap flow once `darwin-amd64` and `darwin-arm64` assets are published.
 
 Use the collection from this repository root with:
 

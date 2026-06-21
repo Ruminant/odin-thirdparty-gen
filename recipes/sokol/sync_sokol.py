@@ -38,7 +38,7 @@ def package_lib_prefix(package_root: Path, file_path: Path, os_name: str, arch: 
 
 
 def library_platform(name: str) -> tuple[str, str] | None:
-    if name.startswith("dcimgui") or "windows_x64" in name:
+    if "windows_x64" in name:
         return "windows", "amd64"
     if "macos_arm64" in name:
         return "darwin", "arm64"
@@ -58,7 +58,52 @@ def patch_package_text(package_root: Path, path: Path, text: str) -> str:
         lib_prefix = package_lib_prefix(package_root, path, *platform)
         return f'"{lib_prefix}/{name}"'
 
-    return LIB_RE.sub(replace_lib, text)
+    text = LIB_RE.sub(replace_lib, text)
+    relative = path.relative_to(package_root).as_posix()
+    if relative == "imgui/imgui.odin":
+        text = patch_sokol_imgui_dcimgui_default(text)
+    elif relative == "imgui/dear/raw.odin":
+        text = patch_dear_imgui_dcimgui_default(text)
+    return text
+
+
+def patch_sokol_imgui_dcimgui_default(text: str) -> str:
+    old_windows = '''    when SOKOL_IMGUI_LINK_DCIMGUI {
+        foreign import dcimgui_core { "../libs/windows/amd64/dcimgui_core_windows_x64.lib" }
+    }'''
+    new_windows = '''    when SOKOL_IMGUI_LINK_DCIMGUI {
+        IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/windows_amd64/dcimgui_core.lib")
+        foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
+    }'''
+    old = '''    when SOKOL_IMGUI_LINK_DCIMGUI {
+        IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/darwin_amd64/libdcimgui_core.a")
+        foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
+    }'''
+    new = '''    when SOKOL_IMGUI_LINK_DCIMGUI {
+        when ODIN_ARCH == .arm64 {
+            IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/darwin_arm64/libdcimgui_core.a")
+        } else {
+            IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/darwin_amd64/libdcimgui_core.a")
+        }
+        foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE, "system:c++" }
+    }'''
+    return text.replace(old_windows, new_windows).replace(old, new)
+
+
+def patch_dear_imgui_dcimgui_default(text: str) -> str:
+    old = '''} else when ODIN_OS == .Darwin {
+\tIMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/darwin_amd64/libdcimgui_core.a")
+\tforeign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
+} else {'''
+    new = '''} else when ODIN_OS == .Darwin {
+\twhen ODIN_ARCH == .arm64 {
+\t\tIMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/darwin_arm64/libdcimgui_core.a")
+\t} else {
+\t\tIMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/darwin_amd64/libdcimgui_core.a")
+\t}
+\tforeign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE, "system:c++" }
+} else {'''
+    return text.replace(old, new)
 
 
 def write_text_if_changed(path: Path, text: str) -> None:

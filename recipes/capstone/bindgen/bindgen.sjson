@@ -15,6 +15,10 @@ remove_macro_prefix = "CS_"
 // Remove this prefix from function names (and add it as link_prefix) to the foreign group
 remove_function_prefix = "cs_"
 
+type_overrides = {
+    "size_t" = "c.size_t"
+}
+
 clang_include_paths = [
     "input"
 ]

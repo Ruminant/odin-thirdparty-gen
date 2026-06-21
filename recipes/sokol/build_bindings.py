@@ -5,68 +5,38 @@ from __future__ import annotations
 
 import argparse
 import os
-import platform
-import shutil
 import subprocess
 import sys
 import tarfile
 import urllib.request
-from dataclasses import dataclass
 from pathlib import Path
-from typing import TypeAlias
 
 
 RECIPE_DIR = Path(__file__).resolve().parent
 ROOT = RECIPE_DIR.parents[1]
+sys.path.insert(0, str(RECIPE_DIR.parent))
+
+from common import (  # noqa: E402
+    HostPlatform,
+    build_environment,
+    command_exists,
+    copy_newer,
+    detect_platform,
+    macos_deployment_target,
+    make_logger,
+    run,
+)
+
 BUILD_DIR = RECIPE_DIR / "build"
 DOWNLOAD_DIR = BUILD_DIR / "download"
 EXTRACT_DIR = BUILD_DIR / "extract"
 MANIFEST = RECIPE_DIR / "package.sjson"
 ODIN_DIR = ROOT / "odin" / "sokol"
 EXAMPLES_DIR = ROOT / "examples" / "sokol"
+DCIMGUI_DIR = RECIPE_DIR / "dcimgui"
 
 
-CommandArg: TypeAlias = str | os.PathLike[str]
-
-
-@dataclass(frozen=True)
-class HostPlatform:
-    os_name: str
-    arch: str
-
-    @property
-    def key(self) -> str:
-        return f"{self.os_name}-{self.arch}"
-
-    @property
-    def upstream_arch_token(self) -> str:
-        return "x64" if self.arch == "amd64" else self.arch
-
-    def library_dir(self, package_dir: Path) -> Path:
-        return package_dir / "libs" / self.os_name / self.arch
-
-
-def log(message: str) -> None:
-    print(f"[sokol] {message}", flush=True)
-
-
-def detect_platform() -> HostPlatform:
-    system = platform.system().lower()
-    machine = platform.machine().lower()
-    os_name = {
-        "windows": "windows",
-        "darwin": "darwin",
-        "linux": "linux",
-    }.get(system)
-    arch = {
-        "amd64": "amd64",
-        "x86_64": "amd64",
-        "arm64": "arm64",
-        "aarch64": "arm64",
-    }.get(machine)
-    if not os_name or not arch:
-        raise SystemExit(f"Unsupported platform: {platform.system()} {platform.machine()}")
-    return HostPlatform(os_name=os_name, arch=arch)
+log = make_logger("sokol")
 
 
 def string_value(text: str, key: str) -> str:
@@ -76,15 +46,6 @@ def string_value(text: str, key: str) -> str:
     if match is None:
         raise ValueError(f"Missing string key: {key}")
     return match.group(1)
-
-
-def command_exists(command: str) -> bool:
-    return shutil.which(command) is not None
-
-
-def run(command: list[CommandArg], cwd: Path | None = None) -> None:
-    log("+ " + " ".join(os.fspath(arg) for arg in command))
-    subprocess.run(command, cwd=cwd, check=True)
 
 
 def download(url: str, destination: Path) -> None:
@@ -165,7 +126,7 @@ def run_windows_build(sokol_dir: Path) -> None:
         raise FileNotFoundError(f"Missing upstream Windows build script: {script}")
 
     if command_exists("cl.exe"):
-        run(["cmd.exe", "/d", "/c", script.name], cwd=sokol_dir)
+        run(["cmd.exe", "/d", "/c", script.name], cwd=sokol_dir, log=log)
         return
 
     vsdevcmd = find_vsdevcmd()
@@ -188,7 +149,63 @@ def run_windows_build(sokol_dir: Path) -> None:
         ),
         encoding="utf-8",
     )
-    run(["cmd.exe", "/d", "/c", launcher], cwd=sokol_dir)
+    run(["cmd.exe", "/d", "/c", launcher], cwd=sokol_dir, log=log)
+
+
+def write_text_if_changed(path: Path, text: str) -> None:
+    if path.read_text(encoding="utf-8") == text:
+        return
+    path.write_text(text, encoding="utf-8", newline="")
+
+
+def patch_macos_build_scripts(sokol_dir: Path) -> None:
+    target = macos_deployment_target()
+    scripts = [
+        sokol_dir / "build_clibs_macos.sh",
+        sokol_dir / "build_clibs_macos_dylib.sh",
+    ]
+
+    for script in scripts:
+        text = script.read_text(encoding="utf-8")
+        text = text.replace(
+            "MACOSX_DEPLOYMENT_TARGET=10.13 clang",
+            f'MACOSX_DEPLOYMENT_TARGET="${{MACOSX_DEPLOYMENT_TARGET:-{target}}}" clang',
+        )
+
+        if script.name == "build_clibs_macos_dylib.sh":
+            lines = []
+            for line in text.splitlines():
+                if line.startswith("build_lib_") and " sokol_imgui " in line:
+                    lines.append(f"# {line}  # skipped: requires separate ImGui/dcimgui linkage")
+                else:
+                    lines.append(line)
+            text = "\n".join(lines) + "\n"
+
+        write_text_if_changed(script, text)
+
+
+def dcimgui_platform_dir(host: HostPlatform) -> str:
+    return f"{host.os_name}_{host.arch}"
+
+
+def build_dcimgui_core(host: HostPlatform) -> None:
+    build_dir = BUILD_DIR / "dcimgui" / host.key
+    output_dir = ODIN_DIR / "imgui" / "dear" / "lib" / dcimgui_platform_dir(host)
+    env = build_environment(host)
+
+    configure_command = [
+        "cmake",
+        "-S",
+        str(DCIMGUI_DIR),
+        "-B",
+        str(build_dir),
+        f"-DSOKOL_DCIMGUI_OUTPUT_DIR={output_dir}",
+    ]
+    if host.os_name == "darwin":
+        configure_command.append(f"-DCMAKE_OSX_DEPLOYMENT_TARGET={macos_deployment_target()}")
+
+    run(configure_command, env=env, log=log)
+    run(["cmake", "--build", str(build_dir), "--config", "Release"], env=env, log=log)
 
 
 def build_platform_libs(host: HostPlatform, sokol_dir: Path) -> None:
@@ -197,14 +214,16 @@ def build_platform_libs(host: HostPlatform, sokol_dir: Path) -> None:
         return
 
     if host.os_name == "darwin":
-        run(["sh", sokol_dir / "build_clibs_macos.sh"], cwd=sokol_dir)
-        run(["sh", sokol_dir / "build_clibs_macos_dylib.sh"], cwd=sokol_dir)
+        patch_macos_build_scripts(sokol_dir)
+        env = build_environment(host)
+        run(["sh", sokol_dir / "build_clibs_macos.sh"], cwd=sokol_dir, env=env, log=log)
+        run(["sh", sokol_dir / "build_clibs_macos_dylib.sh"], cwd=sokol_dir, env=env, log=log)
         return
 
     if host.os_name == "linux":
         if host.arch != "amd64":
             raise RuntimeError("Upstream Sokol Linux script currently builds x64 artifacts only.")
-        run(["sh", sokol_dir / "build_clibs_linux.sh"], cwd=sokol_dir)
+        run(["sh", sokol_dir / "build_clibs_linux.sh"], cwd=sokol_dir, log=log)
         return
 
     raise RuntimeError(f"Unsupported Sokol platform: {host.key}")
@@ -231,24 +250,6 @@ def belongs_to_host(path: Path, host: HostPlatform) -> bool:
     return False
 
 
-def copy_newer(source: Path, destination: Path) -> None:
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    if destination.exists() and destination.stat().st_mtime >= source.stat().st_mtime:
-        return
-    shutil.copy2(source, destination)
-
-
-def vendored_windows_lib_dirs(host: HostPlatform) -> list[Path]:
-    if host.os_name != "windows":
-        return []
-    relative = Path("odin") / "sokol" / "libs" / "windows" / "amd64"
-    return [
-        ROOT / relative,
-        ROOT / ".local-artifacts" / relative,
-        ROOT / ".local-artifacts" / "recent-build" / relative,
-    ]
-
-
 def stage_libraries(host: HostPlatform, package_dir: Path) -> None:
     sokol_dir = package_dir / "sokol"
     output_dir = host.library_dir(ODIN_DIR)
@@ -265,18 +266,6 @@ def stage_libraries(host: HostPlatform, package_dir: Path) -> None:
     for source in sorted(set(sources), key=lambda path: path.name):
         copy_newer(source, output_dir / source.name)
 
-    vendored = []
-    for directory in vendored_windows_lib_dirs(host):
-        if directory.exists():
-            vendored.extend(directory.glob("dcimgui*.lib"))
-
-    if vendored:
-        log("Copying vendored dcimgui Windows libraries...")
-        for source in sorted(set(vendored), key=lambda path: path.name):
-            copy_newer(source, output_dir / source.name)
-    elif host.os_name == "windows":
-        log("Warning: no vendored dcimgui Windows libraries were found.")
-
 
 def sync_package(host: HostPlatform, package_dir: Path) -> None:
     log("Syncing Odin package and examples...")
@@ -290,11 +279,12 @@ def sync_package(host: HostPlatform, package_dir: Path) -> None:
             host.os_name,
             "--arch",
             host.arch,
-        ]
+        ],
+        log=log,
     )
 
 
-def run_odin_checks(skip_checks: bool) -> None:
+def run_odin_checks(host: HostPlatform, skip_checks: bool) -> None:
     if skip_checks:
         log("Skipping Odin checks.")
         return
@@ -319,9 +309,9 @@ def run_odin_checks(skip_checks: bool) -> None:
     ]
     log("Checking core packages...")
     for package in checks:
-        run(["odin", "check", package, "-no-entry-point"])
+        run(["odin", "check", package, "-no-entry-point"], log=log)
     log("Checking clear example...")
-    run(["odin", "check", EXAMPLES_DIR / "clear", collection_arg])
+    run(["odin", "check", EXAMPLES_DIR / "clear", collection_arg], log=log)
 
 
 def main() -> int:
@@ -338,10 +328,11 @@ def main() -> int:
         log("Skipping native library build.")
     else:
         build_platform_libs(host, package_dir / "sokol")
+        build_dcimgui_core(host)
 
     sync_package(host, package_dir)
     stage_libraries(host, package_dir)
-    run_odin_checks(args.skip_checks)
+    run_odin_checks(host, args.skip_checks)
     log("Done.")
     return 0
 

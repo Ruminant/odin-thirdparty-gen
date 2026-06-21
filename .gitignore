@@ -8,6 +8,7 @@
 __pycache__/
 *.pyc
 /odin/**/libs/
+/odin/**/lib/
 /bindgen/*.exe
 /bindgen/*.dll
 /bindgen/*.dylib
@@ -17,3 +18,4 @@ __pycache__/
 /examples/**/*.png
 /examples/**/ffmpeg-empty-output.mkv
 /.vscode/
+.DS_Store

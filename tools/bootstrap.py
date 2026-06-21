@@ -116,6 +116,9 @@ def safe_extract_zip(archive: Path, destination: Path) -> None:
             target.parent.mkdir(parents=True, exist_ok=True)
             with zf.open(member) as source, target.open("wb") as output:
                 output.write(source.read())
+            mode = member.external_attr >> 16
+            if mode:
+                target.chmod(mode)
 
 
 def main() -> int:

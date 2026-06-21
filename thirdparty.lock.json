@@ -14,7 +14,7 @@
     "tools": {
       "owner": "Ruminant",
       "repo": "odin-thirdparty-gen",
-      "tag": "snapshot"
+      "tag": "snapshot-tools"
     }
   },
   "packages": {
@@ -45,6 +45,12 @@
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-tools/odin-thirdparty-tools-windows-amd64.zip",
       "sha256": "576518f1c82e337826db42d5d93eeba8aed5ec11b60a4fad3203cbfe991f11e8",
       "size": 24414212
+    },
+    "darwin-arm64": {
+      "asset": "odin-thirdparty-tools-darwin-arm64.zip",
+      "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-tools/odin-thirdparty-tools-darwin-arm64.zip",
+      "sha256": "11acf6af83d301cb480a2efd0c61e04a83c8da61a1e80f14e65f0c8b1697e1d7",
+      "size": 203723
     }
   }
 }

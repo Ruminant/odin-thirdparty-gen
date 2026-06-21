@@ -8,11 +8,10 @@ import sg "../gfx"
 SOKOL_DEBUG :: #config(SOKOL_DEBUG, ODIN_DEBUG)
 
 DEBUG :: #config(SOKOL_IMGUI_DEBUG, SOKOL_DEBUG)
+SOKOL_IMGUI_USE_GL :: #config(SOKOL_USE_GL, false)
+SOKOL_IMGUI_LINK_DCIMGUI :: #config(SOKOL_IMGUI_LINK_DCIMGUI, true)
 
 when ODIN_OS == .Windows {
-    SOKOL_IMGUI_USE_GL :: #config(SOKOL_USE_GL, false)
-    SOKOL_IMGUI_LINK_DCIMGUI :: #config(SOKOL_IMGUI_LINK_DCIMGUI, true)
-
     when SOKOL_IMGUI_USE_GL {
         when DEBUG { foreign import sokol_imgui_clib { "../libs/windows/amd64/sokol_imgui_windows_x64_gl_debug.lib" } }
         else       { foreign import sokol_imgui_clib { "../libs/windows/amd64/sokol_imgui_windows_x64_gl_release.lib" } }
@@ -22,10 +21,38 @@ when ODIN_OS == .Windows {
     }
 
     when SOKOL_IMGUI_LINK_DCIMGUI {
-        foreign import dcimgui_core { "../libs/windows/amd64/dcimgui_core_windows_x64.lib" }
+        IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/windows_amd64/dcimgui_core.lib")
+        foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
+    }
+} else when ODIN_OS == .Darwin {
+    when SOKOL_IMGUI_USE_GL {
+        when ODIN_ARCH == .arm64 {
+            when DEBUG { foreign import sokol_imgui_clib { "../libs/darwin/arm64/sokol_imgui_macos_arm64_gl_debug.a" } }
+            else       { foreign import sokol_imgui_clib { "../libs/darwin/arm64/sokol_imgui_macos_arm64_gl_release.a" } }
+        } else {
+            when DEBUG { foreign import sokol_imgui_clib { "../libs/darwin/amd64/sokol_imgui_macos_x64_gl_debug.a" } }
+            else       { foreign import sokol_imgui_clib { "../libs/darwin/amd64/sokol_imgui_macos_x64_gl_release.a" } }
+        }
+    } else {
+        when ODIN_ARCH == .arm64 {
+            when DEBUG { foreign import sokol_imgui_clib { "../libs/darwin/arm64/sokol_imgui_macos_arm64_metal_debug.a" } }
+            else       { foreign import sokol_imgui_clib { "../libs/darwin/arm64/sokol_imgui_macos_arm64_metal_release.a" } }
+        } else {
+            when DEBUG { foreign import sokol_imgui_clib { "../libs/darwin/amd64/sokol_imgui_macos_x64_metal_debug.a" } }
+            else       { foreign import sokol_imgui_clib { "../libs/darwin/amd64/sokol_imgui_macos_x64_metal_release.a" } }
+        }
+    }
+
+    when SOKOL_IMGUI_LINK_DCIMGUI {
+        when ODIN_ARCH == .arm64 {
+            IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/darwin_arm64/libdcimgui_core.a")
+        } else {
+            IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/darwin_amd64/libdcimgui_core.a")
+        }
+        foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE, "system:c++" }
     }
 } else {
-    #panic("sokol_imgui currently has only Windows library defaults")
+    #panic("sokol_imgui currently has only Windows and Darwin library defaults")
 }
 
 @(default_calling_convention="c", link_prefix="simgui_")

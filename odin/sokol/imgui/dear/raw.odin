@@ -7,8 +7,12 @@ when ODIN_OS == .Windows {
 	IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/windows_amd64/dcimgui_core.lib")
 	foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
 } else when ODIN_OS == .Darwin {
-	IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/darwin_amd64/libdcimgui_core.a")
-	foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
+	when ODIN_ARCH == .arm64 {
+		IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/darwin_arm64/libdcimgui_core.a")
+	} else {
+		IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/darwin_amd64/libdcimgui_core.a")
+	}
+	foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE, "system:c++" }
 } else {
 	IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/linux_amd64/libdcimgui_core.a")
 	foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
