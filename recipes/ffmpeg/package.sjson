@@ -1,5 +1,5 @@
 name = "ffmpeg"
-version = "8.1.1"
+version = "8.1.2"
 upstream_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full-shared.7z"
 source_notes = "Downloaded as a prebuilt shared release archive from Gyan.dev."
 

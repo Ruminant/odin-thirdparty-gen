@@ -23,7 +23,7 @@
       "recipe": "recipes/capstone/package.sjson"
     },
     "ffmpeg": {
-      "version": "8.1.1",
+      "version": "8.1.2",
       "recipe": "recipes/ffmpeg/package.sjson"
     },
     "sokol": {
@@ -37,6 +37,12 @@
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-windows-amd64.zip",
       "sha256": "f87c8795078c7c7050bf8c5ab0fafbcdcfc1bd2935b8c8876a5c05b6e03cc578",
       "size": 84636870
+    },
+    "darwin-arm64": {
+      "asset": "odin-thirdparty-artifacts-darwin-arm64.zip",
+      "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-darwin-arm64.zip",
+      "sha256": "381640895790e598719cca1567800e172c6d77cbcea6fb3dfc51c88fb0cba80c",
+      "size": 41667017
     }
   },
   "tools": {

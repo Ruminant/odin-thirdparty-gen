@@ -43,16 +43,19 @@ def platform_lib_dir(platform_key: str) -> Path:
     return Path("odin") / "*" / "libs" / os_name / arch
 
 
-def collect_files(platform_key: str, source_root: Path) -> list[Path]:
+def collect_files(platform_key: str, source_roots: list[Path]) -> list[tuple[Path, Path]]:
     patterns = [
         platform_lib_dir(platform_key) / "**" / "*",
     ]
 
-    files: list[Path] = []
-    for pattern in patterns:
-        files.extend(path for path in source_root.glob(str(pattern)) if path.is_file())
+    files: dict[Path, Path] = {}
+    for source_root in source_roots:
+        for pattern in patterns:
+            for path in source_root.glob(str(pattern)):
+                if path.is_file():
+                    files[path.relative_to(source_root)] = path
 
-    return sorted(set(files), key=lambda path: path.as_posix().lower())
+    return sorted(files.items(), key=lambda item: item[0].as_posix().lower())
 
 
 def sha256_file(path: Path) -> str:
@@ -80,11 +83,13 @@ def main() -> int:
     parser.add_argument("platform", nargs="?", default=None, help="Artifact platform key")
     parser.add_argument("--lock", default=DEFAULT_LOCK, type=Path)
     parser.add_argument("--dist", default=DEFAULT_DIST, type=Path)
-    parser.add_argument("--source-root", default=ROOT, type=Path)
+    parser.add_argument("--source-root", default=None, type=Path)
     parser.add_argument("--no-update-lock", action="store_true")
     args = parser.parse_args()
 
     platform_key = args.platform or detect_platform()
+    if platform_key.startswith("platform="):
+        platform_key = platform_key.split("=", 1)[1]
     lock = json.loads(args.lock.read_text(encoding="utf-8"))
     artifacts = lock.setdefault("artifacts", {})
     artifact = artifacts.setdefault(
@@ -101,8 +106,15 @@ def main() -> int:
     artifact["asset"] = asset
     artifact["url"] = artifact_url(lock, "artifacts", str(asset))
 
-    source_root = args.source_root.resolve()
-    files = collect_files(platform_key, source_root)
+    if args.source_root is not None:
+        source_roots = [args.source_root.resolve()]
+    else:
+        source_roots = [ROOT.resolve()]
+        local_artifacts = ROOT / ".local-artifacts" / platform_key
+        if local_artifacts.exists():
+            source_roots.append(local_artifacts.resolve())
+
+    files = collect_files(platform_key, source_roots)
     if not files:
         raise SystemExit(f"No files found for {platform_key}; run the recipes first.")
 
@@ -110,8 +122,8 @@ def main() -> int:
     archive = args.dist / str(asset)
     print(f"[package] Writing {archive}")
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-        for path in files:
-            arcname = path.relative_to(source_root).as_posix()
+        for arcpath, path in files:
+            arcname = arcpath.as_posix()
             print(f"[package]   {arcname}")
             zf.write(path, arcname)
 

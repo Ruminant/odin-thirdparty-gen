@@ -15,7 +15,7 @@ bootstrap:
 bootstrap-tools:
     {{python}} tools/bootstrap.py --kind tools
 
-package-release platform="windows-amd64":
+package-release platform="":
     {{python}} tools/package_release.py {{platform}}
 
 package-tools bindgen libclang="":
