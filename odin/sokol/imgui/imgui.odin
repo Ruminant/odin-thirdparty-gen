@@ -21,7 +21,7 @@ when ODIN_OS == .Windows {
     }
 
     when SOKOL_IMGUI_LINK_DCIMGUI {
-        IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "dear/lib/windows_amd64/dcimgui_core.lib")
+        IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "../libs/windows/amd64/dcimgui_core.lib")
         foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
     }
 } else when ODIN_OS == .Darwin {
