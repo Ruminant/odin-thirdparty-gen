@@ -47,6 +47,7 @@ check-sokol:
     odin check odin/sokol/app -no-entry-point
     odin check odin/sokol/gfx -no-entry-point
     odin check odin/sokol/glue -no-entry-point
+    odin check odin/sokol/fetch -no-entry-point
     odin check odin/sokol/time -no-entry-point
     odin check odin/sokol/audio -no-entry-point
     odin check odin/sokol/debugtext -no-entry-point
@@ -56,6 +57,7 @@ check-sokol:
     odin check odin/sokol/imgui -no-entry-point
     odin check odin/sokol/imgui/dear -no-entry-point
     odin check examples/sokol/clear {{collection}}
+    odin check examples/sokol/fetch {{collection}}
 
 example-capstone:
     odin run examples/capstone/disasm_basic {{collection}} -define:CAPSTONE_STATIC=true -out:examples/capstone/disasm_basic/disasm_basic.exe
@@ -75,6 +77,9 @@ example-sokol-clear:
 example-sokol-imgui:
     odin run examples/sokol/imgui {{collection}} -out:examples/sokol/clear/sokol_imgui.exe
 
+example-sokol-fetch:
+    odin run examples/sokol/fetch {{collection}} -out:examples/sokol/fetch/sokol_fetch.exe
+
 
 clean-examples:
     Remove-Item -LiteralPath examples/capstone/disasm_basic/disasm_basic.exe -Force -ErrorAction SilentlyContinue
@@ -84,3 +89,4 @@ clean-examples:
     Remove-Item -LiteralPath examples/ffmpeg/grab_png_at_time/output.png -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath examples/ffmpeg/raylib_video/raylib_video.exe -Force -ErrorAction SilentlyContinue
     Remove-Item -LiteralPath examples/sokol/clear/sokol_clear.exe -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath examples/sokol/fetch/sokol_fetch.exe -Force -ErrorAction SilentlyContinue

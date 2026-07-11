@@ -298,6 +298,7 @@ def run_odin_checks(host: HostPlatform, skip_checks: bool) -> None:
         ODIN_DIR / "app",
         ODIN_DIR / "gfx",
         ODIN_DIR / "glue",
+        ODIN_DIR / "fetch",
         ODIN_DIR / "time",
         ODIN_DIR / "audio",
         ODIN_DIR / "debugtext",
