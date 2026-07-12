@@ -44,8 +44,10 @@ def platform_lib_dir(platform_key: str) -> Path:
 
 
 def collect_files(platform_key: str, source_roots: list[Path]) -> list[tuple[Path, Path]]:
+    os_name, arch = platform_key.split("-", 1)
     patterns = [
         platform_lib_dir(platform_key) / "**" / "*",
+        Path("odin") / "*" / "**" / "lib" / f"{os_name}_{arch}" / "**" / "*",
     ]
 
     files: dict[Path, Path] = {}

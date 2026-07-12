@@ -53,7 +53,7 @@ $env:PATH = "$(Resolve-Path .\odin\ffmpeg\libs\windows\amd64);$env:PATH"
 odin run examples\ffmpeg\raylib_video -collection:thirdparty=odin -- -video:"path\to\video.mp4"
 ```
 
-Sokol is arranged as upstream subpackages, for example `thirdparty:sokol/app`, `thirdparty:sokol/gfx`, and `thirdparty:sokol/imgui`. The recipe stages the libraries built by upstream's `build_clibs_windows.cmd`. The `dcimgui*.lib` files in `odin\sokol\libs\windows\amd64` are temporarily vendored by hand because upstream references `dcimgui_core` but does not build or ship it in that archive.
+Sokol is arranged as subpackages such as `thirdparty:sokol/app`, `thirdparty:sokol/gfx`, and `thirdparty:sokol/imgui`. Its C sources and generated Odin bindings are owned by this repository. The recipe fetches the pinned Dear ImGui `v1.92.8-docking` sources and builds them with the matching generated Dear Bindings bridge.
 
 The `justfile` wraps the common workflows:
 
@@ -64,17 +64,24 @@ just check
 just capstone
 just ffmpeg
 just sokol
+just build-sokol-wasm
 just package-release windows-amd64
 just package-tools path\to\bindgen.exe path\to\libclang.dll
 ```
 
 `just package-release <platform>` creates `dist/odin-thirdparty-artifacts-<platform>.zip` from locally staged runtime/link binaries and updates `thirdparty.lock.json` with the archive hash and size. `just package-tools <bindgen> [libclang]` creates the matching bindgen tool artifact. Upload those zips to the release tags configured in `thirdparty.lock.json` before expecting the bootstrap commands to work from a fresh checkout.
 
-The Capstone and Sokol recipes are implemented in Python and can be run on Windows, macOS, and Linux. Sokol currently follows upstream's Linux x64 build script.
+The Capstone and Sokol recipes are implemented in Python and can be run on Windows, macOS, and Linux. Sokol also supports a `web-wasm32` artifact built with Emscripten 6.0.2. Activate that SDK before building:
 
 ```powershell
 just build-capstone
 just build-sokol
+just build-sokol-wasm
+just example-sokol-wasm
+just package-release web-wasm32
+just bootstrap web-wasm32
 ```
+
+`just example-sokol-wasm` writes complete `clear` and `imgui` HTML/JavaScript/WASM smoke tests under `recipes/sokol/build/example-wasm`.
 
 FFmpeg is still a Windows batch recipe while its cross-platform packaging strategy is worked out.

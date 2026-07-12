@@ -51,6 +51,11 @@ when ODIN_OS == .Windows {
         }
         foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE, "system:c++" }
     }
+} else when ODIN_ARCH == .wasm32 || ODIN_ARCH == .wasm64p32 {
+    foreign import sokol_imgui_clib { "env.o" }
+    when SOKOL_IMGUI_LINK_DCIMGUI {
+        foreign import dcimgui_core { "env.o" }
+    }
 } else {
     #panic("sokol_imgui currently has only Windows and Darwin library defaults")
 }

@@ -9,8 +9,8 @@ default:
 
 build-all: build-capstone build-ffmpeg build-sokol
 
-bootstrap:
-    {{python}} tools/bootstrap.py
+bootstrap platform="":
+    {{python}} tools/bootstrap.py {{ if platform != "" { "--platform " + platform } else { "" } }}
 
 bootstrap-tools:
     {{python}} tools/bootstrap.py --kind tools
@@ -29,6 +29,12 @@ build-ffmpeg:
 
 build-sokol:
     {{python}} recipes/sokol/build_bindings.py
+
+build-sokol-wasm:
+    {{python}} recipes/sokol/build_bindings.py --target web-wasm32 --skip-checks
+
+example-sokol-wasm:
+    {{python}} recipes/sokol/build_bindings.py --target web-wasm32 --skip-build --skip-checks --build-example
 
 check: check-capstone check-ffmpeg check-sokol
 

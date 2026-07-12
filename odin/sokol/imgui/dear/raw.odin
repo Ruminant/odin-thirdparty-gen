@@ -13,6 +13,8 @@ when ODIN_OS == .Windows {
 		IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/darwin_amd64/libdcimgui_core.a")
 	}
 	foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE, "system:c++" }
+} else when ODIN_ARCH == .wasm32 || ODIN_ARCH == .wasm64p32 {
+	foreign import dcimgui_core { "env.o" }
 } else {
 	IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/linux_amd64/libdcimgui_core.a")
 	foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
