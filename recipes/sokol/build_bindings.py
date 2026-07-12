@@ -303,9 +303,48 @@ def build_wasm_example(host: HostPlatform) -> None:
         run([
             linker, obj, *archives,
             "--js-library", RECIPE_DIR / "wasm" / "odin_runtime.js",
-            "-sUSE_WEBGL2=1", "-sFULL_ES3=1", "-sALLOW_MEMORY_GROWTH=1",
+            "--post-js", RECIPE_DIR / "wasm" / "odin_start.js",
+            "-sUSE_WEBGL2=1", "-sFULL_ES3=1",
+            "-sALLOW_MEMORY_GROWTH=1", "-sGROWABLE_ARRAYBUFFERS=0",
+            "-sINITIAL_MEMORY=67108864",
             "-o", example_dir / f"{example_name}.html",
         ], env=env, log=log)
+        loader = example_dir / f"{example_name}.js"
+        loader_text = loader.read_text(encoding="utf-8")
+        sync_needle = "function getWasmImports() {\n  // prepare imports"
+        sync_replacement = """function getWasmImports() {
+  // Odin grows WASM memory directly. Refresh Emscripten's ordinary typed-array
+  // views before servicing the next imported JS/WebGL function.
+  for (const name in wasmImports) {
+    const original = wasmImports[name];
+    if (typeof original === 'function') {
+      wasmImports[name] = (...args) => {
+        if (wasmMemory && HEAP8.buffer !== wasmMemory.buffer) updateMemoryViews();
+        return original(...args);
+      };
+    }
+  }
+  // prepare imports"""
+        if sync_needle not in loader_text:
+            raise RuntimeError(f"Could not locate Emscripten import setup in {loader}")
+        loader_text = loader_text.replace(sync_needle, sync_replacement, 1)
+        needle = "    'env': wasmImports,\n    'wasi_snapshot_preview1': wasmImports,"
+        replacement = "    'env': wasmImports,\n    'odin_env': wasmImports,\n    'wasi_snapshot_preview1': wasmImports,"
+        if needle not in loader_text:
+            raise RuntimeError(f"Could not locate Emscripten import map in {loader}")
+        loader.write_text(loader_text.replace(needle, replacement, 1), encoding="utf-8", newline="\n")
+
+        html = example_dir / f"{example_name}.html"
+        html_text = html.read_text(encoding="utf-8")
+        fullscreen_css = """
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+body > :not(.emscripten_border):not(script) { display: none !important; }
+div.emscripten_border { width: 100vw; height: 100vh; border: 0; }
+canvas.emscripten { width: 100%; height: 100%; margin: 0; }
+"""
+        if "</style>" not in html_text:
+            raise RuntimeError(f"Could not locate Emscripten stylesheet in {html}")
+        html.write_text(html_text.replace("</style>", fullscreen_css + "</style>", 1), encoding="utf-8", newline="\n")
 
 
 def run_odin_checks(skip_checks: bool) -> None:
