@@ -41,8 +41,8 @@
     "darwin-arm64": {
       "asset": "odin-thirdparty-artifacts-darwin-arm64.zip",
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-darwin-arm64.zip",
-      "sha256": "381640895790e598719cca1567800e172c6d77cbcea6fb3dfc51c88fb0cba80c",
-      "size": 41667017
+      "sha256": "852e9315f8793277fc5d33c4f8a3980545b54999cedf99eb18c2330b1e50e499",
+      "size": 42524442
     },
     "web-wasm32": {
       "asset": "odin-thirdparty-artifacts-web-wasm32.zip",
