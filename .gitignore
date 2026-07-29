@@ -19,3 +19,7 @@ __pycache__/
 /examples/**/ffmpeg-empty-output.mkv
 /.vscode/
 .DS_Store
+/.zig-cache/
+/.zig-global-cache/
+/zig-out/
+/zig-pkg/

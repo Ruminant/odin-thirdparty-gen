@@ -1,0 +1,24 @@
+.{
+    .name = .odin_thirdparty_gen,
+    .version = "0.1.0",
+    .fingerprint = 0x3c610720881636d2,
+    .minimum_zig_version = "0.17.0-dev.1413+addc3c3b8",
+    .dependencies = .{
+        .capstone = .{
+            .url = "https://github.com/capstone-engine/capstone/archive/refs/tags/5.0.9.tar.gz",
+            .hash = "N-V-__8AAMzFSwOIl1jdbLuhRO25AzROW8N3671-iBTwANpQ",
+        },
+        .imgui = .{
+            .url = "https://github.com/ocornut/imgui/archive/refs/tags/v1.92.8-docking.tar.gz",
+            .hash = "N-V-__8AAOTBgQC0wENsLs3rPmgvuyukHzDc04QgCYw-lCQp",
+        },
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "examples",
+        "odin",
+        "recipes",
+        "tools",
+    },
+}

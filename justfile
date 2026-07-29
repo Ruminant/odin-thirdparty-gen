@@ -7,7 +7,8 @@ python := if os_family() == "windows" { "py -3" } else { "python3" }
 default:
     just --list
 
-build-all: build-capstone build-ffmpeg build-sokol
+build-all platform="":
+    zig build all {{ if platform != "" { "-Dplatform=" + platform } else { "" } }}
 
 bootstrap platform="":
     {{python}} tools/bootstrap.py {{ if platform != "" { "--platform " + platform } else { "" } }}
@@ -21,22 +22,26 @@ package-release platform="":
 package-tools bindgen libclang="":
     {{python}} tools/package_tools.py "{{bindgen}}" --libclang "{{libclang}}"
 
-build-capstone:
-    {{python}} recipes/capstone/build_bindings.py
+build-capstone platform="":
+    zig build capstone {{ if platform != "" { "-Dplatform=" + platform } else { "" } }}
 
 build-ffmpeg:
-    ./recipes/ffmpeg/build_bindings.bat
+    zig build ffmpeg -Dplatform=windows-amd64
 
-build-sokol:
-    {{python}} recipes/sokol/build_bindings.py
+build-sokol platform="":
+    zig build sokol {{ if platform != "" { "-Dplatform=" + platform } else { "" } }}
 
-build-sokol-wasm:
-    {{python}} recipes/sokol/build_bindings.py --target web-wasm32 --skip-checks
+build-sokol-wasm emsdk=env_var_or_default("EMSDK", ""):
+    zig build sokol-wasm -Dplatform=web-wasm32 {{ if emsdk != "" { "-Demsdk=" + emsdk } else { "" } }}
 
-example-sokol-wasm:
-    {{python}} recipes/sokol/build_bindings.py --target web-wasm32 --skip-build --skip-checks --build-example
+example-sokol-wasm emsdk=env_var_or_default("EMSDK", ""):
+    zig build sokol-wasm-examples -Dplatform=web-wasm32 {{ if emsdk != "" { "-Demsdk=" + emsdk } else { "" } }}
 
-check: check-capstone check-ffmpeg check-sokol
+bindings:
+    zig build bindings
+
+check platform="":
+    zig build check {{ if platform != "" { "-Dplatform=" + platform } else { "" } }}
 
 check-capstone:
     odin check odin/capstone -no-entry-point

@@ -1,6 +1,6 @@
 name = "sokol"
 version = "vendored"
-source_notes = "Sokol C sources and generated Odin bindings are vendored in this repository. Dear ImGui is fetched from its pinned docking tag and compiled with the matching vendored dear_bindings output."
+source_notes = "Sokol C sources and generated Odin bindings are vendored. Dear ImGui is pinned through build.zig.zon and compiled by the Zig build graph with the matching vendored dear_bindings output."
 sokol_source_dir = "source/c"
 imgui_version = "1.92.8-docking"
 imgui_url = "https://github.com/ocornut/imgui/archive/refs/tags/v1.92.8-docking.tar.gz"

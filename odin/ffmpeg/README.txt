@@ -1,10 +1,10 @@
 FFmpeg 64-bit shared Windows build from www.gyan.dev
 
-Version: 8.1.1-full_build-www.gyan.dev
+Version: 8.1.2-full_build-www.gyan.dev
 
 License: GPL v3
 
-Source Code: https://github.com/FFmpeg/FFmpeg/commit/239f2c733d
+Source Code: https://github.com/FFmpeg/FFmpeg/commit/38b88335f9
 
 External Assets
 frei0r plugins:   https://www.gyan.dev/ffmpeg/builds/ffmpeg-frei0r-plugins
@@ -841,74 +841,74 @@ caca
 
 release-full external libraries' versions: 
 
-AMF v1.5.0-1-gd0b3e6d
-aom v3.13.3-431-ge86de95f79
+AMF v1.5.2-1-g6ec0295
+aom v3.14.1-100-gb973895c4c
 aribcaption 1.1.1
-AviSynthPlus v3.7.5-281-g23f0e3fa
+AviSynthPlus v3.7.5-337-gfcb9c8a2
 bs2b 3.1.0
 cairo 1.18.5
 chromaprint 1.6.0
 codec2 1.2.0-108-g310777b1
-dav1d 1.5.3-36-ge1bd6f7
+dav1d 1.5.3-62-g77ef6635
 davs2 1.7-1-gb41cf11
 dvdnav 7.0.0-1-gcf11277
-dvdread 7.0.1-55-ge4d9a03
-ffnvcodec n13.0.19.0-3-g33a9ede
+dvdread 7.0.1-58-gfb1f159
+ffnvcodec n13.0.19.0-5-g1b5a81a
 flite v2.2-55-g6c9f20d
-frei0r v3.1.3-4-gc546bce
+frei0r v3.2.2
 gsm 1.0.24
 ladspa-sdk 1.17
 lame 3.100
 lc3 1.1.3
 lcms2 2.16
-lensfun v0.3.95-1964-g47a30009
+lensfun v0.3.95-1986-g698a39ee
 libcdio-paranoia 10.2
 libgme 0.6.6
 libilbc v3.0.4-346-g6adb26d4a4
-libjxl v0.11-snapshot-571-g950c327c
+libjxl v0.11-snapshot-646-g455bed37
 libopencore-amrnb 0.1.6
 libopencore-amrwb 0.1.6
-libplacebo v7.360.0-34-gd5ef02c
+libplacebo v7.360.0-89-gef14f12
 libsoxr 0.1.3
 libssh 0.12.0
 libtheora v1.2.0
-libwebp v1.6.0-175-g24f7331
+libwebp v1.6.0-192-g3757b8a
 openal-soft latest
-openapv v0.2.1.3-fix
-openmpt libopenmpt-0.6.28-14-gd0e05aa3
-opus v1.6.1-19-gf8f99516
+openapv v0.2.1.3-fix-5-g9825fa0
+openmpt libopenmpt-0.6.28-25-g1d77fab8
+opus v1.6.1-50-g3da9f7a6
 qrencode 4.1.1
 quirc 1.2
 rav1e p20250624-3-g564ae3b
-rist 0.2.14
+rist 0.2.18
 rubberband v1.8.1
-SDL release-2.32.0-198-g039a60c52
-shaderc v2026.2-3-g9acf02c
+SDL release-2.32.0-218-gb8b3f5ef2
+shaderc v2026.2-23-g0c40fcc
 shine 3.1.1
 snappy 1.2.2
 speex Speex-1.2.1-51-g0589522
-srt v1.5.5
-SVT-AV1 v4.1.0-59-g5c5e1482
-SVT-JPEG-XS v0.9.0-50-gc36f29a
+srt v1.5.5-9-gc39196c
+SVT-AV1 v4.1.0-cqp-extended-106-gec17f8382
+SVT-JPEG-XS v0.9.0-59-g8e50180
 twolame 0.4.0
 uavs3d v1.1-50-g0e20d2c
 VAAPI 2.24.0.
 vidstab v1.1.1-24-g92bc0b0
-vmaf v3.1.0-33-g151a9822
+vmaf v3.2.0-2-g60016fbd
 vo-amrwbenc 0.1.3
-vorbis v1.3.7-24-g68a7fc22
+vorbis v1.3.7-36-ge3c9861f
 VPL 2.16
-vpx v1.16.0-108-g640d4ce27
-vulkan-loader v1.4.350
-vvenc v1.14.0-116-g9ff4e0d
-whisper.cpp 1.8.4
+vpx v1.16.0-152-g91bba32d5
+vulkan-loader v1.4.354-25-gd745850
+vvenc v1.14.0-134-gdb3c312
+whisper.cpp 1.9.1
 x264 v0.165.3223
-x265 4.2-4-g3f4120d
+x265 4.2-59-gb81f650
 xavs2 1.4
 xevd 0.5.0
 xeve 0.5.1
 xvid v1.3.7
 zeromq 4.3.5
-zimg release-3.0.6-218-gfa52dee
+zimg release-3.0.6-222-gb364757
 zvbi v0.2.44-4-g41477c9
 

@@ -203,24 +203,27 @@ def run_odin_checks(skip_checks: bool) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", default="Release", help="CMake build config")
+    parser.add_argument("--skip-build", action="store_true", help="Use libraries and staged headers produced by Zig")
     parser.add_argument("--skip-bindgen", action="store_true")
     parser.add_argument("--skip-checks", action="store_true")
     args = parser.parse_args()
 
     host = detect_platform()
-    build_env = build_environment(host)
+    if args.skip_build:
+        log("Using artifacts and headers staged by Zig.")
+        patch_staged_headers()
+    else:
+        build_env = build_environment(host)
+        log("Configuring legacy CMake fallback...")
+        configure_command = ["cmake", "-S", str(RECIPE_DIR), "-B", str(BUILD_DIR)]
+        if host.os_name == "darwin":
+            configure_command.append(f"-DCMAKE_OSX_DEPLOYMENT_TARGET={macos_deployment_target()}")
+        run(configure_command, env=build_env, log=log)
 
-    log("Configuring CMake...")
-    configure_command = ["cmake", "-S", str(RECIPE_DIR), "-B", str(BUILD_DIR)]
-    if host.os_name == "darwin":
-        configure_command.append(f"-DCMAKE_OSX_DEPLOYMENT_TARGET={macos_deployment_target()}")
-    run(configure_command, env=build_env, log=log)
-
-    log(f"Building {args.config} artifacts...")
-    run(["cmake", "--build", str(BUILD_DIR), "--config", args.config], env=build_env, log=log)
-
-    stage_headers()
-    stage_libraries(args.config, host)
+        log(f"Building {args.config} artifacts...")
+        run(["cmake", "--build", str(BUILD_DIR), "--config", args.config], env=build_env, log=log)
+        stage_headers()
+        stage_libraries(args.config, host)
 
     if args.skip_bindgen:
         log("Skipping bindgen.")

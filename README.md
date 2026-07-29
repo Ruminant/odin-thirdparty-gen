@@ -25,7 +25,7 @@ On macOS and Linux, install the system libclang package separately when regenera
 
 Windows recipes look for `BINDGEN_EXE` first, then `.thirdparty-tools\bindgen\windows-amd64\bindgen.exe`.
 
-The first packaged artifact target is `windows-amd64`. Runtime/link artifacts are published under the `snapshot-libs` pre-release, while bindgen tool artifacts are published under the `snapshot-tools` pre-release. macOS artifacts should use the same bootstrap flow once `darwin-amd64` and `darwin-arm64` assets are published.
+Runtime/link artifacts are published under the `snapshot-libs` pre-release, while bindgen tool artifacts are published under the `snapshot-tools` pre-release. The configured artifact rows are `windows-amd64`, `darwin-arm64`, and `web-wasm32`.
 
 Use the collection from this repository root with:
 
@@ -61,9 +61,9 @@ The `justfile` wraps the common workflows:
 just bootstrap
 just bootstrap-tools
 just check
-just capstone
-just ffmpeg
-just sokol
+just build-capstone
+just build-ffmpeg
+just build-sokol
 just build-sokol-wasm
 just package-release windows-amd64
 just package-tools path\to\bindgen.exe path\to\libclang.dll
@@ -71,17 +71,40 @@ just package-tools path\to\bindgen.exe path\to\libclang.dll
 
 `just package-release <platform>` creates `dist/odin-thirdparty-artifacts-<platform>.zip` from locally staged runtime/link binaries and updates `thirdparty.lock.json` with the archive hash and size. `just package-tools <bindgen> [libclang]` creates the matching bindgen tool artifact. Upload those zips to the release tags configured in `thirdparty.lock.json` before expecting the bootstrap commands to work from a fresh checkout.
 
-The Capstone and Sokol recipes are implemented in Python and can be run on Windows, macOS, and Linux. Sokol also supports a `web-wasm32` artifact built with Emscripten 6.0.2. Activate that SDK before building:
+The compilation graph is implemented in `build.zig`, with `just` providing short aliases. It pins and fetches Capstone 5.0.9 and Dear ImGui 1.92.8-docking through `build.zig.zon`, compiles native libraries with Zig, and stages them under the exact paths expected by the Odin bindings.
+
+Use Zig `0.17.0-dev.1413+addc3c3b8` or newer. The supported build platform keys are:
+
+- `windows-amd64`
+- `darwin-amd64`
+- `darwin-arm64`
+- `linux-amd64`
+- `web-wasm32`
+
+The platform defaults to the native host. It can be selected explicitly:
+
+```powershell
+just build-sokol windows-amd64
+zig build all -Dplatform=darwin-arm64
+```
+
+Sokol also supports a `web-wasm32` artifact built with Emscripten 6.0.2. Set `EMSDK` or pass its path to the `just` recipe:
 
 ```powershell
 just build-capstone
 just build-sokol
-just build-sokol-wasm
-just example-sokol-wasm
+just build-sokol-wasm E:\dev\tools\emsdk
+just example-sokol-wasm E:\dev\tools\emsdk
 just package-release web-wasm32
 just bootstrap web-wasm32
 ```
 
 `just example-sokol-wasm` writes complete `clear` and `imgui` HTML/JavaScript/WASM smoke tests under `recipes/sokol/build/example-wasm`.
 
-FFmpeg is still a Windows batch recipe while its cross-platform packaging strategy is worked out.
+Binding regeneration is intentionally separate from normal compilation because it rewrites checked-in Odin source:
+
+```powershell
+just bindings
+```
+
+FFmpeg remains a Windows-only prebuilt SDK recipe rather than a source compilation. Zig owns its top-level build step and delegates only SDK acquisition/staging and binding cleanup to a portable Python helper. The old batch recipes and superseded Sokol Python/CMake orchestration have been removed.

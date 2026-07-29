@@ -1,7 +1,7 @@
 name = "capstone"
 version = "5.0.9"
 upstream_url = "https://github.com/capstone-engine/capstone/archive/refs/tags/5.0.9.tar.gz"
-source_notes = "Fetched and built with CMake FetchContent from recipes/capstone/CMakeLists.txt."
+source_notes = "Fetched through build.zig.zon and compiled by the repository Zig build graph."
 
 bindgen_config = "bindgen/bindgen.sjson"
 staged_headers_dir = "bindgen/input"
