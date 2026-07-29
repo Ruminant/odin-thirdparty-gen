@@ -35,8 +35,8 @@
     "windows-amd64": {
       "asset": "odin-thirdparty-artifacts-windows-amd64.zip",
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-windows-amd64.zip",
-      "sha256": "38e20b918acd1674018110015452d6639ae2f74198f8b554f1d218ec1d31ecd7",
-      "size": 115916303
+      "sha256": "819ef37c77881af8920ea7e51acd48f19ced158f92dbe177021264cc8e812e31",
+      "size": 113692601
     },
     "darwin-arm64": {
       "asset": "odin-thirdparty-artifacts-darwin-arm64.zip",
@@ -47,7 +47,7 @@
     "web-wasm32": {
       "asset": "odin-thirdparty-artifacts-web-wasm32.zip",
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-web-wasm32.zip",
-      "sha256": "1e6021d53968b874b9361dd19ecbca65bc903a749d9daea64528adc070a06512",
+      "sha256": "d2da558fc4c2b0fb3a394bc672ce735d6167220c1bbf3ef788967db955b36279",
       "size": 1301330
     }
   },

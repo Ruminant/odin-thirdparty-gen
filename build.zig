@@ -492,6 +492,9 @@ fn sokolModule(
         .target = target,
         .optimize = optimize,
         .link_libc = true,
+        // Debug artifacts must remain linkable without Zig's UBSan runtime.
+        // _DEBUG and debug info are still enabled below.
+        .sanitize_c = .off,
     });
     module.addIncludePath(source);
     module.addIncludePath(dear);
