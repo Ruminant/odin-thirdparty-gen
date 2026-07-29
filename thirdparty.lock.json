@@ -47,7 +47,7 @@
     "web-wasm32": {
       "asset": "odin-thirdparty-artifacts-web-wasm32.zip",
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-web-wasm32.zip",
-      "sha256": "d2da558fc4c2b0fb3a394bc672ce735d6167220c1bbf3ef788967db955b36279",
+      "sha256": "498a4f713d28c44a0d6d667b965ae34cef5b14f1a73f0bd9f0c4287a5b3a495e",
       "size": 1301330
     }
   },
