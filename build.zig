@@ -415,7 +415,7 @@ fn addSokolNative(b: *Build, platform: Platform) *Build.Step {
 
     for (backends) |backend| {
         inline for (.{ OptimizeMode.Debug, OptimizeMode.ReleaseFast }) |optimize| {
-            const mode = if (optimize == .Debug) "debug" else "release";
+            const mode = if (optimize == .debug) "debug" else "release";
             for (sokol_modules) |name| {
                 const module = sokolModule(b, target, optimize, source, dear, imgui, backend, false, platform);
                 module.addCSourceFile(.{
@@ -502,7 +502,7 @@ fn sokolModule(
     module.addCMacro("IMPL", "1");
     module.addCMacro(backend.define, "1");
     if (dynamic) module.addCMacro("SOKOL_DLL", "1");
-    if (optimize == .Debug) module.addCMacro("_DEBUG", "1") else module.addCMacro("NDEBUG", "1");
+    if (optimize == .debug) module.addCMacro("_DEBUG", "1") else module.addCMacro("NDEBUG", "1");
     if (platform.os == .windows and dynamic) {
         for ([_][]const u8{ "d3d11", "dxgi", "ole32", "user32", "gdi32", "shell32" }) |lib|
             module.linkSystemLibrary(lib, .{});
@@ -567,12 +567,12 @@ fn addSokolWasm(b: *Build, emsdk_option: ?[]const u8) !*Build.Step {
     stage.addCopyFileToSource(dc_archive_output, "odin/sokol/imgui/dear/lib/web_wasm32/libdcimgui_core.a");
 
     inline for (.{ OptimizeMode.Debug, OptimizeMode.ReleaseFast }) |optimize| {
-        const mode = if (optimize == .Debug) "debug" else "release";
+        const mode = if (optimize == .debug) "debug" else "release";
         for (sokol_modules) |name| {
             const compile = b.addSystemCommand(&.{emcc});
             compile.setName(b.fmt("emcc sokol_{s} ({s})", .{ name, mode }));
             compile.addArgs(&.{ "-c", "-DIMPL", "-DSOKOL_GLES3" });
-            if (optimize == .Debug) compile.addArg("-g") else compile.addArgs(&.{ "-O2", "-DNDEBUG" });
+            if (optimize == .debug) compile.addArg("-g") else compile.addArgs(&.{ "-O2", "-DNDEBUG" });
             compile.addPrefixedDirectoryArg("-I", source);
             compile.addPrefixedDirectoryArg("-I", dear);
             compile.addPrefixedDirectoryArg("-I", imgui);

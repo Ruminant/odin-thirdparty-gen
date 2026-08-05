@@ -1,6 +1,6 @@
 # Odin Thirdparty Bindings + Generator
 
-A collection of Odin bindings for third-party C libraries.
+A collection of Odin bindings for third-party C libraries, with the bindings living in the repository, and the big libraries downloaded as releases.
 
 The repository is arranged as an Odin collection:
 
@@ -9,25 +9,54 @@ The repository is arranged as an Odin collection:
 - `examples/<library>/<example>` contains standalone example packages.
 - `thirdparty.lock.json` describes release artifacts used by `just bootstrap`.
 
-Runtime and link artifacts are not source-of-truth files in git. They are prepared by the recipes, packaged as release assets, and installed into the checkout with:
+If you just clone this repo, you will be missing the DLLs and libs to make it work.  So the first step is to fetch these libraries, and for that you can either use [`just`](https://github.com/casey/just) or use the python helper (which is, in actual fact, what the justfile is doing)
+
+## Requirements
+
+- zig 0.17.0-dev.1525+91c6d8a09 (or higher)
+- odin dev-2026-07:65c3f2ded (or higher)
+- just 1.52.0 (or higher)
+- python 3.12+
+
+## Fetch the Binaries
 
 ```powershell
 just bootstrap
 ```
 
-Bindgen tooling is packaged separately because it is only needed when regenerating bindings:
+This will fetch the one of the library archives from [here](https://github.com/Ruminant/odin-thirdparty-gen/releases/tag/snapshot-libs) - which one is based on your platform.  Let's assume Windows, in which case we will download `odin-thirdparty-artifacts-windows-amd64.zip` and extract it into the root of this project.
+
+At that point, you can test if things are working by using `just example-capstone` - which tests the capstone library and bindings:
+
+```bash
+> just example-capstone
+
+odin run examples/capstone/disasm_basic -collection:thirdparty=odin -define:CAPSTONE_STATIC=true -out:examples/capstone/disasm_basic/disasm_basic.exe
+0x1000: push            rbp
+0x1001: mov             rax, qword ptr [rip + 0x13b8]
+```
+
+## Regenerate Bindings
+
+Bindgen tooling is packaged separately because it is only needed when regenerating bindings, and you can grab the tooling with:
 
 ```powershell
 just bootstrap-tools
 ```
 
-On macOS and Linux, install the system libclang package separately when regenerating bindings. The tool artifact should only need the bindgen executable there. On Windows, the tool artifact may also include `libclang.dll`.
+That will fetch an archive from [here](https://github.com/Ruminant/odin-thirdparty-gen/releases/tag/snapshot-tools) - and once again, which archive will be based on your platform (currently only macos or windows)
 
-Windows recipes look for `BINDGEN_EXE` first, then `.thirdparty-tools\bindgen\windows-amd64\bindgen.exe`.
+The source for bindgen can be found [here](https://github.com/karl-zylinski/odin-c-bindgen) - if you'd like to manually build it.
 
-Runtime/link artifacts are published under the `snapshot-libs` pre-release, while bindgen tool artifacts are published under the `snapshot-tools` pre-release. The configured artifact rows are `windows-amd64`, `darwin-arm64`, and `web-wasm32`.
+On macOS (and probably Linux), you'll need to install the system libclang package yourself.  This is required by the bindgen executable.
+On Windows, the tool comes with libclang.dll, at the cost of a larger archive package.
 
-Use the collection from this repository root with:
+Windows recipes look for the environment variable `BINDGEN_EXE` first, then `.thirdparty-tools\bindgen\windows-amd64\bindgen.exe`.
+
+
+## Use the Collection
+
+Assuming a fresh clone, you can use/test the collection from the repo root like so:
 
 ```powershell
 just bootstrap
@@ -73,7 +102,7 @@ just package-tools path\to\bindgen.exe path\to\libclang.dll
 
 The compilation graph is implemented in `build.zig`, with `just` providing short aliases. It pins and fetches Capstone 5.0.9 and Dear ImGui 1.92.8-docking through `build.zig.zon`, compiles native libraries with Zig, and stages them under the exact paths expected by the Odin bindings.
 
-Use Zig `0.17.0-dev.1413+addc3c3b8` or newer. The supported build platform keys are:
+Use Zig `0.17.0-dev.1525+91c6d8a09` or newer. The supported build platform keys are:
 
 - `windows-amd64`
 - `darwin-amd64`

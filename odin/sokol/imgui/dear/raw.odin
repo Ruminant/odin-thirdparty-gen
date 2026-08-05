@@ -4,7 +4,7 @@ package imgui
 import "core:c"
 
 when ODIN_OS == .Windows {
-	IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "lib/windows_amd64/dcimgui_core.lib")
+	IMGUI_ODIN_LIB_DCIMGUI_CORE :: #config(IMGUI_ODIN_LIB_DCIMGUI_CORE, "../../libs/windows/amd64/dcimgui_core.lib")
 	foreign import dcimgui_core { IMGUI_ODIN_LIB_DCIMGUI_CORE }
 } else when ODIN_OS == .Darwin {
 	when ODIN_ARCH == .arm64 {
