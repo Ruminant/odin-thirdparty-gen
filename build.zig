@@ -178,14 +178,29 @@ pub fn build(b: *Build) !void {
     const python = b.option([]const u8, "python", "Python executable used by code-generation helpers") orelse
         if (builtin.os.tag == .windows) "py" else "python3";
     const odin = b.option([]const u8, "odin", "Path to the Odin compiler") orelse "odin";
-    const emsdk = b.option([]const u8, "emsdk", "Path to an activated Emscripten SDK");
+    const configured_emsdk = b.option([]const u8, "emsdk", "Path to an activated Emscripten SDK");
+    const local_emsdk = b.option([]const u8, "emsdk-local", "Download and use Emscripten from this local directory");
+    const emsdk_version = b.option([]const u8, "emsdk-version", "Emscripten SDK version to install") orelse "6.0.2";
+    const emsdk = local_emsdk orelse configured_emsdk;
+    const emsdk_setup = if (local_emsdk) |directory|
+        addEmsdkSetup(b, python, directory, emsdk_version)
+    else
+        null;
 
     const all = b.step("all", "Build all libraries available for the selected platform");
     const checks = addOdinChecks(b, odin);
     const bindings = b.step("bindings", "Regenerate Capstone and FFmpeg Odin bindings");
 
+    if (platform.os == .windows or platform.isWasm()) {
+        const nanosvg = addNanoSvg(b, platform);
+        all.dependOn(nanosvg);
+        b.step("nanosvg", "Build NanoSVG for the selected platform").dependOn(nanosvg);
+    } else {
+        _ = b.step("nanosvg", "NanoSVG is currently available for Windows and WebAssembly");
+    }
+
     if (platform.isWasm()) {
-        const sokol_wasm = try addSokolWasm(b, emsdk);
+        const sokol_wasm = try addSokolWasm(b, emsdk, emsdk_setup);
         all.dependOn(sokol_wasm);
         b.step("sokol", "Build Sokol for the selected platform").dependOn(sokol_wasm);
         b.step("sokol-wasm", "Build Sokol and Dear ImGui WebAssembly archives").dependOn(sokol_wasm);
@@ -278,6 +293,41 @@ fn resolvePlatform(b: *Build) Platform {
         .library_arch = "wasm",
     };
     std.debug.panic("unknown -Dplatform value: {s}", .{key});
+}
+
+fn addNanoSvg(b: *Build, platform: Platform) *Build.Step {
+    // Compile the WebAssembly object against Zig's WASI libc headers. The
+    // resulting archive only carries ordinary C/math imports and is linked by
+    // Emscripten alongside the Odin object, just like the Sokol web archives.
+    const target = if (platform.isWasm())
+        b.resolveTargetQuery(.{ .cpu_arch = .wasm32, .os_tag = .wasi })
+    else
+        platform.nativeTarget(b);
+    const module = b.createModule(.{
+        .target = target,
+        .optimize = .ReleaseFast,
+        .link_libc = true,
+    });
+    module.addIncludePath(b.path("recipes/nanosvg"));
+    module.addCSourceFile(.{
+        .file = b.path("recipes/nanosvg/nanosvg_wrapper.c"),
+        .flags = &.{ "-std=c99", "-DNDEBUG" },
+    });
+
+    const library = b.addLibrary(.{
+        .name = "nanosvg",
+        .linkage = .static,
+        .root_module = module,
+    });
+    const stage = b.addUpdateSourceFiles();
+    stage.addCopyFileToSource(
+        library.getEmittedBin(),
+        if (platform.isWasm())
+            "odin/nanosvg/libs/web/wasm32/libnanosvg.a"
+        else
+            "odin/nanosvg/libs/windows/amd64/nanosvg.lib",
+    );
+    return &stage.step;
 }
 
 fn addCapstone(b: *Build, platform: Platform) *Build.Step {
@@ -529,12 +579,10 @@ fn sokolLanguageFlags(platform: Platform) []const []const u8 {
         &.{};
 }
 
-fn addSokolWasm(b: *Build, emsdk_option: ?[]const u8) !*Build.Step {
-    const emsdk = emsdk_option orelse
-        @panic("web-wasm32 requires -Demsdk=/path/to/emsdk (for example -Demsdk=E:/dev/tools/emsdk)");
-    const emcc = emTool(b, emsdk, "emcc");
-    const emxx = emTool(b, emsdk, "em++");
-    const emar = emTool(b, emsdk, "emar");
+fn addSokolWasm(b: *Build, emsdk_option: ?[]const u8, emsdk_setup: ?*Build.Step) !*Build.Step {
+    const emcc = optionalEmTool(b, emsdk_option, "emcc");
+    const emxx = optionalEmTool(b, emsdk_option, "em++");
+    const emar = optionalEmTool(b, emsdk_option, "emar");
     const imgui = b.dependency("imgui", .{}).path("");
     const source = b.path("recipes/sokol/source/c");
     const dear = b.path("recipes/sokol/dcimgui/generated_bindings");
@@ -543,6 +591,7 @@ fn addSokolWasm(b: *Build, emsdk_option: ?[]const u8) !*Build.Step {
     var dcimgui_objects: std.ArrayList(Build.LazyPath) = .empty;
     for (imgui_sources) |name| {
         const compile = b.addSystemCommand(&.{emxx});
+        if (emsdk_setup) |setup| compile.step.dependOn(setup);
         compile.setName(b.fmt("em++ {s}", .{name}));
         compile.addArgs(&.{ "-c", "-O2", "-DNDEBUG", "-std=c++11" });
         compile.addPrefixedDirectoryArg("-I", imgui);
@@ -552,6 +601,7 @@ fn addSokolWasm(b: *Build, emsdk_option: ?[]const u8) !*Build.Step {
         try dcimgui_objects.append(b.allocator, compile.addOutputFileArg(b.fmt("{s}.o", .{std.fs.path.stem(name)})));
     }
     const dc_compile = b.addSystemCommand(&.{emxx});
+    if (emsdk_setup) |setup| dc_compile.step.dependOn(setup);
     dc_compile.setName("em++ dcimgui.cpp");
     dc_compile.addArgs(&.{ "-c", "-O2", "-DNDEBUG", "-std=c++11" });
     dc_compile.addPrefixedDirectoryArg("-I", imgui);
@@ -570,6 +620,7 @@ fn addSokolWasm(b: *Build, emsdk_option: ?[]const u8) !*Build.Step {
         const mode = if (optimize == .debug) "debug" else "release";
         for (sokol_modules) |name| {
             const compile = b.addSystemCommand(&.{emcc});
+            if (emsdk_setup) |setup| compile.step.dependOn(setup);
             compile.setName(b.fmt("emcc sokol_{s} ({s})", .{ name, mode }));
             compile.addArgs(&.{ "-c", "-DIMPL", "-DSOKOL_GLES3" });
             if (optimize == .debug) compile.addArg("-g") else compile.addArgs(&.{ "-O2", "-DNDEBUG" });
@@ -600,7 +651,6 @@ fn addSokolWasmExamples(
     emsdk_option: ?[]const u8,
     libraries: *Build.Step,
 ) !*Build.Step {
-    const emsdk = emsdk_option orelse @panic("sokol-wasm-examples requires -Demsdk");
     const postprocess = b.path("recipes/sokol/postprocess_wasm.py");
     const all = b.step("generated wasm examples", "Internal WebAssembly example aggregation step");
     for ([_][]const u8{ "clear", "imgui" }) |name| {
@@ -611,7 +661,11 @@ fn addSokolWasmExamples(
         const object = compile.addPrefixedOutputFileArg("-out:", b.fmt("{s}.obj", .{name}));
         compile.step.dependOn(libraries);
 
-        const linker = emTool(b, emsdk, if (std.mem.eql(u8, name, "imgui")) "em++" else "emcc");
+        const linker = optionalEmTool(
+            b,
+            emsdk_option,
+            if (std.mem.eql(u8, name, "imgui")) "em++" else "emcc",
+        );
         const link = b.addSystemCommand(&.{linker});
         link.setName(b.fmt("link {s}.html", .{name}));
         link.addFileArg(object);
@@ -666,11 +720,25 @@ fn addPythonRecipe(b: *Build, python: []const u8, script: []const u8, args: []co
     return command;
 }
 
+fn addEmsdkSetup(b: *Build, python: []const u8, directory: []const u8, version: []const u8) *Build.Step {
+    const command = b.addSystemCommand(if (builtin.os.tag == .windows)
+        &.{ python, "-3" }
+    else
+        &.{python});
+    command.setName(b.fmt("install Emscripten {s}", .{version}));
+    command.addFileArg(b.path("tools/setup_emsdk.py"));
+    command.addArgs(&.{ "--directory", directory, "--version", version });
+    const step = b.step("emsdk", "Download and activate the local Emscripten SDK selected by -Demsdk-local");
+    step.dependOn(&command.step);
+    return &command.step;
+}
+
 fn addOdinChecks(b: *Build, odin: []const u8) *Build.Step {
     const all = b.step("odin checks", "Internal Odin check aggregation step");
     const packages = [_][]const u8{
         "odin/capstone",
         "odin/ffmpeg",
+        "odin/nanosvg",
         "odin/sokol/log",
         "odin/sokol/app",
         "odin/sokol/gfx",
@@ -714,4 +782,8 @@ fn emTool(b: *Build, emsdk: []const u8, name: []const u8) []const u8 {
         "emscripten",
         b.fmt("{s}{s}", .{ name, if (builtin.os.tag == .windows) ".exe" else "" }),
     });
+}
+
+fn optionalEmTool(b: *Build, emsdk: ?[]const u8, name: []const u8) []const u8 {
+    return if (emsdk) |path| emTool(b, path, name) else name;
 }

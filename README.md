@@ -92,6 +92,7 @@ just bootstrap-tools
 just check
 just build-capstone
 just build-ffmpeg
+just build-nanosvg
 just build-sokol
 just build-sokol-wasm
 just package-release windows-amd64
@@ -100,7 +101,7 @@ just package-tools path\to\bindgen.exe path\to\libclang.dll
 
 `just package-release <platform>` creates `dist/odin-thirdparty-artifacts-<platform>.zip` from locally staged runtime/link binaries and updates `thirdparty.lock.json` with the archive hash and size. `just package-tools <bindgen> [libclang]` creates the matching bindgen tool artifact. Upload those zips to the release tags configured in `thirdparty.lock.json` before expecting the bootstrap commands to work from a fresh checkout.
 
-The compilation graph is implemented in `build.zig`, with `just` providing short aliases. It pins and fetches Capstone 5.0.9 and Dear ImGui 1.92.8-docking through `build.zig.zon`, compiles native libraries with Zig, and stages them under the exact paths expected by the Odin bindings.
+The compilation graph is implemented in `build.zig`, with `just` providing short aliases. It pins and fetches Capstone 5.0.9 and Dear ImGui 1.92.8-docking through `build.zig.zon`, compiles native libraries and the vendored NanoSVG source with Zig, and stages them under the exact paths expected by the Odin bindings.
 
 Use Zig `0.17.0-dev.1525+91c6d8a09` or newer. The supported build platform keys are:
 
@@ -121,6 +122,8 @@ Sokol also supports a `web-wasm32` artifact built with Emscripten 6.0.2. Set `EM
 
 ```powershell
 just build-capstone
+just build-nanosvg windows-amd64
+just build-nanosvg web-wasm32
 just build-sokol
 just build-sokol-wasm E:\dev\tools\emsdk
 just example-sokol-wasm E:\dev\tools\emsdk
@@ -128,7 +131,17 @@ just package-release web-wasm32
 just bootstrap web-wasm32
 ```
 
-`just example-sokol-wasm` writes complete `clear` and `imgui` HTML/JavaScript/WASM smoke tests under `recipes/sokol/build/example-wasm`.
+Alternatively, the Zig build can download, install, and activate the pinned SDK in an ignored local directory before compiling:
+
+```powershell
+zig build sokol-wasm -Dplatform=web-wasm32 "-Demsdk-local=.thirdparty-tools/emsdk"
+# or
+just build-sokol-wasm-local
+```
+
+Use `-Demsdk-version=<version>` to override the pinned `6.0.2` version. The setup requires Git and network access on its first run and is idempotent, so later builds reuse the local installation.
+
+`just example-sokol-wasm-local` builds the browser examples, starts a local server, and opens `clear.html`; press Ctrl+C to stop it. Run `just example-sokol-wasm-local imgui` to open the ImGui demo, or add a second argument to select the port. The non-local `just example-sokol-wasm` does the same using `EMSDK` or its first argument. For build-only/CI use, run `just build-sokol-wasm-examples-local` or `just build-sokol-wasm-examples`. Generated HTML/JavaScript/WASM files live under `recipes/sokol/build/example-wasm`.
 
 Binding regeneration is intentionally separate from normal compilation because it rewrites checked-in Odin source:
 

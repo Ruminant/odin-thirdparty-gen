@@ -1,0 +1,24 @@
+name = "nanosvg"
+version = "239e102ec2c691f2902e20ace2ed36ee4a35cfe6"
+upstream_url = "https://github.com/memononen/nanosvg"
+source_notes = "NanoSVG and its Odin-facing C wrapper are vendored and compiled by the repository Zig build graph."
+
+odin_output_dir = "../../odin/nanosvg"
+package_name = "nanosvg"
+
+handwritten = [
+    "nanosvg.odin",
+]
+license_files = [
+    "LICENSE.txt",
+]
+
+windows_amd64_lib_dir = "../../odin/nanosvg/libs/windows/amd64"
+windows_amd64_import_libs = [
+    "nanosvg.lib",
+]
+
+web_wasm32_lib_dir = "../../odin/nanosvg/libs/web/wasm32"
+web_wasm32_libraries = [
+    "libnanosvg.a",
+]

@@ -28,14 +28,31 @@ build-capstone platform="":
 build-ffmpeg:
     zig build ffmpeg -Dplatform=windows-amd64
 
+build-nanosvg platform="":
+    zig build nanosvg {{ if platform != "" { "-Dplatform=" + platform } else { "" } }}
+
 build-sokol platform="":
     zig build sokol {{ if platform != "" { "-Dplatform=" + platform } else { "" } }}
 
 build-sokol-wasm emsdk=env_var_or_default("EMSDK", ""):
     zig build sokol-wasm -Dplatform=web-wasm32 {{ if emsdk != "" { "-Demsdk=" + emsdk } else { "" } }}
 
-example-sokol-wasm emsdk=env_var_or_default("EMSDK", ""):
+build-sokol-wasm-local emsdk_dir=".thirdparty-tools/emsdk" version="6.0.2":
+    zig build sokol-wasm -Dplatform=web-wasm32 "-Demsdk-local={{emsdk_dir}}" "-Demsdk-version={{version}}"
+
+build-sokol-wasm-examples emsdk=env_var_or_default("EMSDK", ""):
     zig build sokol-wasm-examples -Dplatform=web-wasm32 {{ if emsdk != "" { "-Demsdk=" + emsdk } else { "" } }}
+
+build-sokol-wasm-examples-local emsdk_dir=".thirdparty-tools/emsdk" version="6.0.2":
+    zig build sokol-wasm-examples -Dplatform=web-wasm32 "-Demsdk-local={{emsdk_dir}}" "-Demsdk-version={{version}}"
+
+example-sokol-wasm emsdk=env_var_or_default("EMSDK", "") example="clear" port="8000":
+    zig build sokol-wasm-examples -Dplatform=web-wasm32 {{ if emsdk != "" { "-Demsdk=" + emsdk } else { "" } }}
+    {{python}} tools/serve_wasm_examples.py --example "{{example}}" --port {{port}}
+
+example-sokol-wasm-local example="clear" port="8000" emsdk_dir=".thirdparty-tools/emsdk" version="6.0.2":
+    zig build sokol-wasm-examples -Dplatform=web-wasm32 "-Demsdk-local={{emsdk_dir}}" "-Demsdk-version={{version}}"
+    {{python}} tools/serve_wasm_examples.py --example "{{example}}" --port {{port}}
 
 bindings:
     zig build bindings
@@ -52,6 +69,9 @@ check-ffmpeg:
     odin check examples/ffmpeg/create_empty_output {{collection}}
     odin check examples/ffmpeg/grab_png_at_time {{collection}}
     odin check examples/ffmpeg/raylib_video {{collection}}
+
+check-nanosvg:
+    odin check odin/nanosvg -no-entry-point
 
 check-sokol:
     odin check odin/sokol/log -no-entry-point

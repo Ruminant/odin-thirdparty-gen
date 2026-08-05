@@ -26,6 +26,10 @@
       "version": "8.1.2",
       "recipe": "recipes/ffmpeg/package.sjson"
     },
+    "nanosvg": {
+      "version": "239e102ec2c691f2902e20ace2ed36ee4a35cfe6",
+      "recipe": "recipes/nanosvg/package.sjson"
+    },
     "sokol": {
       "version": "main",
       "recipe": "recipes/sokol/package.sjson"
@@ -35,8 +39,8 @@
     "windows-amd64": {
       "asset": "odin-thirdparty-artifacts-windows-amd64.zip",
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-windows-amd64.zip",
-      "sha256": "819ef37c77881af8920ea7e51acd48f19ced158f92dbe177021264cc8e812e31",
-      "size": 113692601
+      "sha256": "4721f71a6ded191d3543b4e1e03ace16a5557924a2ae721a3ae3157bbdf9369d",
+      "size": 113790358
     },
     "darwin-arm64": {
       "asset": "odin-thirdparty-artifacts-darwin-arm64.zip",
@@ -47,8 +51,8 @@
     "web-wasm32": {
       "asset": "odin-thirdparty-artifacts-web-wasm32.zip",
       "url": "https://github.com/Ruminant/odin-thirdparty-gen/releases/download/snapshot-libs/odin-thirdparty-artifacts-web-wasm32.zip",
-      "sha256": "498a4f713d28c44a0d6d667b965ae34cef5b14f1a73f0bd9f0c4287a5b3a495e",
-      "size": 1301330
+      "sha256": "a4cdc08ab3c33ec83fa85fe13c338afdf02592efc95e55b9ec61cb071c8308db",
+      "size": 1403741
     }
   },
   "tools": {
